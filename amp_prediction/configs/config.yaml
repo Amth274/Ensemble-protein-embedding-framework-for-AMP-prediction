@@ -1,0 +1,119 @@
+# Configuration file for AMP prediction pipeline
+
+# Data configuration
+data:
+  train_path: "data/train.csv"
+  test_path: "data/test.csv"
+  sequence_column: "Sequence"
+  label_column: "label"
+  value_column: "value"  # For regression tasks
+  max_length: 100
+  min_length: 5
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42
+
+# Embedding configuration
+embedding:
+  model_name: "facebook/esm2_t33_650M_UR50D"
+  device: "auto"
+  batch_size: 16
+  pooling_strategy: "mean"  # For sequence-level embeddings
+  embedding_dim: 1280
+
+# Model configuration
+models:
+  cnn:
+    name: "CNN1DAMPClassifier"
+    params:
+      embedding_dim: 1280
+      seq_len: 100
+      dropout: 0.3
+
+  bilstm:
+    name: "AMPBilstmClassifier"
+    params:
+      embedding_dim: 1280
+      hidden_dim: 256
+      num_layers: 1
+      dropout: 0.3
+
+  gru:
+    name: "GRUClassifier"
+    params:
+      embedding_dim: 1280
+      hidden_dim: 256
+      num_layers: 1
+      dropout: 0.3
+      bidirectional: true
+
+  hybrid:
+    name: "CNN_BiLSTM_Classifier"
+    params:
+      input_dim: 1280
+      cnn_out_channels: 256
+      lstm_hidden_size: 128
+      lstm_layers: 1
+      dropout: 0.5
+
+  lstm:
+    name: "AMP_BiRNN"
+    params:
+      input_dim: 1280
+      hidden_dim: 256
+      num_layers: 2
+      dropout: 0.3
+
+  transformer:
+    name: "AMPTransformerClassifier"
+    params:
+      embedding_dim: 1280
+      seq_len: 100
+      num_heads: 1
+      num_layers: 1
+      dropout: 0.3
+
+# Training configuration
+training:
+  batch_size: 64
+  learning_rate: 3e-4
+  num_epochs: 100
+  early_stopping_patience: 10
+  weight_decay: 1e-5
+  loss_function: "bce"  # or "mse" for regression
+  optimizer: "adam"
+  scheduler: "cosine"
+
+# Ensemble configuration
+ensemble:
+  voting_strategy: "soft"  # "soft", "hard", "weighted"
+  threshold: 0.78  # For classification
+  weighted_method: "inverse_mse"  # For regression
+  meta_learning: false
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    classification: ["accuracy", "precision", "recall", "f1", "roc_auc"]
+    regression: ["mse", "rmse", "mae", "r2", "pearson_r"]
+  cross_validation: false
+  cv_folds: 5
+
+# EvoGradient configuration
+evogradient:
+  max_iters: 100
+  max_changes: 0.5
+  learning_rate: 0.001
+
+# Paths configuration
+paths:
+  models_dir: "models"
+  embeddings_dir: "data/embeddings"
+  results_dir: "results"
+  logs_dir: "logs"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/amp_prediction.log"

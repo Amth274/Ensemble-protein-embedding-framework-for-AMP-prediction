@@ -1,0 +1,21 @@
+Sequence,Known_Label,Source,Description,Length,MIC_uM
+GIGKFLHSAKKFGKAFVGEIMNS,1,Frog,Magainin-2 - well-known AMP from Xenopus skin,23,25.0
+KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK,1,Insect,Cecropin A - insect antimicrobial peptide,37,12.5
+LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES,1,Human,LL-37 - human cathelicidin antimicrobial peptide,37,8.2
+GIGAVLKVLTTGLPALISWIKRKRQQ,1,Bee,Melittin - major component of bee venom,25,5.1
+ATKQFNCVQTVSLPGGCRAHPHIAICPPSQKY,1,Human,Alpha-defensin-1 - human neutrophil peptide,31,15.6
+GLFDIVKKVVGALCS,1,Synthetic,Synthetic antimicrobial peptide,15,35.8
+FKWLKKIEKACALLPELCSWIKRKRQQ,1,Synthetic,Designed AMP with improved activity,26,18.4
+KRWWKWWRR,1,Synthetic,Short cationic antimicrobial peptide,9,42.1
+GLLSGILGAGKHIVCNYRSLC,1,Spider,Lycotoxin-1 from wolf spider venom,21,28.3
+FLGALFKALASTL,1,Synthetic,Temporin-like synthetic peptide,13,51.2
+DAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQ,0,Human,Human serum albumin fragment,32,>100
+GIVEQCCTSICSLYQLENYCN,0,Human,Insulin A chain - hormone peptide,20,>100
+SGRGKQGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAE,0,Human,Histone H4 - DNA-binding protein,39,>100
+DKFZCDLLSFEKKDWWKDLDKAKKITAKMKDGWWFLKMKMNS,0,Synthetic,Random sequence - negative control,39,>100
+MQKVELVGLFDDLITFLTCTLGGFLSTVWLKD,0,Human,Cytochrome c oxidase subunit fragment,31,>100
+ASNFNTQFNMSRANLSGHITFLLDLKGKTKGFGFGKS,0,Human,Ribosomal protein fragment,36,>100
+TPKRRRQRRRKGY,0,Synthetic,Cell-penetrating peptide - not antimicrobial,13,>100
+AVGIGALFLGFLGAAGSTMGAASMTLTVQARQLLSGIVQQ,0,Human,Signal peptide sequence,38,>100
+DDDDDDDDDDDD,0,Synthetic,Polyaspartate - negative control,12,>100
+AAAAAAAAAAAA,0,Synthetic,Polyalanine - negative control,12,>100

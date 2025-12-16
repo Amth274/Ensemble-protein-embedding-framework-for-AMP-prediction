@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Analysis - AMP Prediction Demo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-list-ul me-3"></i>Batch Sequence Analysis
+            </h1>
+            <p class="lead text-muted">
+                Upload a CSV file or use sample data to analyze multiple protein sequences simultaneously.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Upload Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-upload me-2"></i>Upload Sequences
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="text-center py-4">
+                            <i class="bi bi-cloud-upload display-1 text-muted mb-3"></i>
+                            <h5>Upload CSV File</h5>
+                            <p class="text-muted">
+                                Drag and drop your CSV file here or click to browse
+                            </p>
+                            <input type="file" id="fileInput" class="d-none" accept=".csv">
+                            <button class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-folder2-open me-2"></i>Choose File
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <h6>File Requirements:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>CSV format with header row</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Must contain a "Sequence" column</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Maximum 100 sequences per batch</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Valid amino acid sequences (A-Z)</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-success" id="loadSampleBtn">
+                            <i class="bi bi-database me-2"></i>Load Sample Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-eye me-2"></i>Data Preview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="uploadedSequences">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox display-1 mb-3"></i>
+                            <h6>No data uploaded yet</h6>
+                            <p>Upload a CSV file or load sample data to see preview</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="batchResults" style="display: none;">
+        <!-- Results will be populated by JavaScript -->
+    </div>
+
+    <!-- CSV Format Help -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-question-circle me-2"></i>CSV Format Example
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p>Your CSV file should have the following format:</p>
+                    <pre class="bg-light p-3 border rounded"><code>Sequence,Description,Source
+GIGKFLHSAKKFGKAFVGEIMNS,Magainin-2,Frog
+KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK,Cecropin A,Insect
+LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES,LL-37,Human</code></pre>
+                    <p class="text-muted mb-0">
+                        <strong>Note:</strong> Only the "Sequence" column is required. Additional columns will be ignored during analysis.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #6c757d;
+}
+
+.upload-area.dragover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.sequence-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.sequence-number {
+    min-width: 30px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.sequence-code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    flex: 1;
+    margin-left: 0.5rem;
+}
+
+.sequence-display {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileUpload({ target: fileInput });
+        }
+    });
+
+    // Initialize batch page functionality
+    if (typeof initializeBatchPage === 'function') {
+        initializeBatchPage();
+    }
+});
+</script>
+{% endblock %}

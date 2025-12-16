@@ -1,0 +1,30 @@
+# Core dependencies
+torch>=1.12.0
+torchvision>=0.13.0
+transformers>=4.20.0
+numpy>=1.21.0
+pandas>=1.4.0
+scikit-learn>=1.1.0
+scipy>=1.8.0
+
+# Progress bars and utilities
+tqdm>=4.64.0
+pyyaml>=6.0
+
+# Visualization (optional)
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Development and testing
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.950
+
+# Optional: CUDA support
+# torch-audio  # Uncomment if needed
+# torch-text   # Uncomment if needed
+
+# Optional: Advanced features
+# optuna>=3.0.0  # For hyperparameter optimization
+# wandb>=0.12.0  # For experiment tracking

@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Examples - AMP Prediction Demo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-collection me-3"></i>Example Sequences
+            </h1>
+            <p class="lead text-muted">
+                Explore known antimicrobial peptides and test sequences with our prediction system.
+            </p>
+        </div>
+    </div>
+
+    <!-- Known AMPs Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="bi bi-shield-check text-success me-2"></i>Known Antimicrobial Peptides
+            </h2>
+            <p class="text-muted mb-4">
+                These are well-characterized antimicrobial peptides from various sources with proven biological activity.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% set amp_examples = [
+            {
+                'name': 'Magainin-2',
+                'sequence': 'GIGKFLHSAKKFGKAFVGEIMNS',
+                'source': 'Xenopus laevis (African clawed frog)',
+                'description': 'One of the most studied AMPs, derived from frog skin secretions.',
+                'activity': 'Broad-spectrum antimicrobial activity',
+                'icon': 'bi-water'
+            },
+            {
+                'name': 'LL-37',
+                'sequence': 'LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES',
+                'source': 'Homo sapiens (Human)',
+                'description': 'The only human cathelicidin, plays crucial role in innate immunity.',
+                'activity': 'Antibacterial, antiviral, antifungal',
+                'icon': 'bi-person-check'
+            },
+            {
+                'name': 'Cecropin A',
+                'sequence': 'KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK',
+                'source': 'Hyalophora cecropia (Cecropia moth)',
+                'description': 'First antimicrobial peptide discovered from insects.',
+                'activity': 'Highly active against Gram-negative bacteria',
+                'icon': 'bi-bug'
+            },
+            {
+                'name': 'Melittin',
+                'sequence': 'GIGAVLKVLTTGLPALISWIKRKRQQ',
+                'source': 'Apis mellifera (Honey bee)',
+                'description': 'Major component of bee venom with strong membrane activity.',
+                'activity': 'Antimicrobial and hemolytic activity',
+                'icon': 'bi-hexagon'
+            },
+            {
+                'name': 'Defensin HNP-1',
+                'sequence': 'ATKQFNCVQTVSLPGGCRAHPHIAICPPSQKY',
+                'source': 'Homo sapiens (Human neutrophils)',
+                'description': 'Human α-defensin with disulfide bonds.',
+                'activity': 'Broad antimicrobial spectrum',
+                'icon': 'bi-shield-fill-check'
+            },
+            {
+                'name': 'Temporin A',
+                'sequence': 'FLGALFKALASTL',
+                'source': 'Rana temporaria (Common frog)',
+                'description': 'Short antimicrobial peptide from frog skin.',
+                'activity': 'Active against Gram-positive bacteria',
+                'icon': 'bi-droplet'
+            }
+        ] %}
+
+        {% for example in amp_examples %}
+        <div class="col-lg-6">
+            <div class="card example-card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="{{ example.icon }} me-2"></i>{{ example.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="sequence-display mb-3">
+                        <label class="form-label fw-bold">Sequence:</label>
+                        <div class="sequence-box">
+                            <code class="sequence-text">{{ example.sequence }}</code>
+                            <button class="btn btn-sm btn-outline-secondary ms-2"
+                                    onclick="copyToClipboard('{{ example.sequence }}')"
+                                    title="Copy sequence">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="example-info">
+                        <p class="mb-2">
+                            <strong>Source:</strong> {{ example.source }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Description:</strong> {{ example.description }}
+                        </p>
+                        <p class="mb-3">
+                            <strong>Activity:</strong> {{ example.activity }}
+                        </p>
+                    </div>
+
+                    <div class="example-stats">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-value">{{ example.sequence|length }}</div>
+                                    <div class="stat-label">Length</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-value">{{ (example.sequence|select('in', 'AILMFPWV')|list|length / example.sequence|length * 100)|round(1) }}%</div>
+                                    <div class="stat-label">Hydrophobic</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-value">{{ (example.sequence|select('in', 'KRDE')|list|length / example.sequence|length * 100)|round(1) }}%</div>
+                                    <div class="stat-label">Charged</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary test-sequence-btn"
+                            data-sequence="{{ example.sequence }}"
+                            onclick="testSequence('{{ example.sequence }}')">
+                        <i class="bi bi-search me-2"></i>Test This Sequence
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Non-AMP Examples Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="bi bi-shield-x text-danger me-2"></i>Non-Antimicrobial Sequences
+            </h2>
+            <p class="text-muted mb-4">
+                These sequences are from non-antimicrobial proteins, useful for testing specificity.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% set non_amp_examples = [
+            {
+                'name': 'Human Serum Albumin Fragment',
+                'sequence': 'DAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQ',
+                'source': 'Homo sapiens',
+                'description': 'Fragment from the most abundant protein in blood plasma.',
+                'function': 'Transport protein, maintains osmotic pressure'
+            },
+            {
+                'name': 'Insulin A Chain',
+                'sequence': 'GIVEQCCTSICSLYQLENYCN',
+                'source': 'Homo sapiens',
+                'description': 'A chain of human insulin hormone.',
+                'function': 'Glucose metabolism regulation'
+            },
+            {
+                'name': 'Histone H4 Fragment',
+                'sequence': 'SGRGKQGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAE',
+                'source': 'Homo sapiens',
+                'description': 'Fragment from core histone protein.',
+                'function': 'DNA packaging and gene regulation'
+            }
+        ] %}
+
+        {% for example in non_amp_examples %}
+        <div class="col-lg-4">
+            <div class="card example-card h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-x-circle me-2"></i>{{ example.name }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="sequence-display mb-3">
+                        <div class="sequence-box">
+                            <code class="sequence-text">{{ example.sequence }}</code>
+                            <button class="btn btn-sm btn-outline-secondary ms-2"
+                                    onclick="copyToClipboard('{{ example.sequence }}')"
+                                    title="Copy sequence">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="mb-2"><strong>Source:</strong> {{ example.source }}</p>
+                    <p class="mb-2"><strong>Description:</strong> {{ example.description }}</p>
+                    <p class="mb-3"><strong>Function:</strong> {{ example.function }}</p>
+
+                    <div class="text-center">
+                        <span class="badge bg-secondary">Length: {{ example.sequence|length }} aa</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-outline-danger test-sequence-btn"
+                            data-sequence="{{ example.sequence }}"
+                            onclick="testSequence('{{ example.sequence }}')">
+                        <i class="bi bi-search me-2"></i>Test This Sequence
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Test Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card quick-test-section">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>Quick Test
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        Enter your own sequence or modify an example to see how it affects the prediction:
+                    </p>
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <textarea class="form-control sequence-input mb-3"
+                                      id="quickTestSequence"
+                                      rows="3"
+                                      placeholder="Enter protein sequence..."></textarea>
+                        </div>
+                        <div class="col-lg-4">
+                            <button class="btn btn-primary btn-lg w-100"
+                                    onclick="testQuickSequence()">
+                                <i class="bi bi-search me-2"></i>Predict Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.example-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.example-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.sequence-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sequence-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    word-break: break-all;
+    flex: 1;
+}
+
+.stat-item {
+    padding: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #2E86C1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.quick-test-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.sequence-input {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function testSequence(sequence) {
+    // Redirect to prediction page with the sequence
+    window.location.href = `/predict?sequence=${encodeURIComponent(sequence)}`;
+}
+
+function testQuickSequence() {
+    const sequence = document.getElementById('quickTestSequence').value.trim();
+    if (!sequence) {
+        AMP.showAlert('Please enter a sequence first', 'warning');
+        return;
+    }
+    testSequence(sequence);
+}
+
+// Handle URL parameters on predict page
+document.addEventListener('DOMContentLoaded', function() {
+    // If we're on the predict page and have a sequence parameter, populate it
+    if (window.location.pathname.includes('predict')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sequence = urlParams.get('sequence');
+        if (sequence) {
+            const sequenceInput = document.getElementById('sequenceInput');
+            if (sequenceInput) {
+                sequenceInput.value = sequence;
+                // Trigger analysis if the function exists
+                if (typeof analyzeSequence === 'function') {
+                    analyzeSequence(sequence);
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

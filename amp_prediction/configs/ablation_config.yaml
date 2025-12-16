@@ -1,0 +1,311 @@
+# Ablation Study Configuration
+# This file documents all key components of the model that can be systematically
+# tested in ablation studies to determine their individual contributions to performance
+
+# =============================================================================
+# 1. PROTEIN EMBEDDING COMPONENTS
+# =============================================================================
+embedding_ablation:
+  # ESM Model Variants (can test different model sizes)
+  model_variants:
+    - name: "esm2_t33_650M_UR50D"
+      model_path: "facebook/esm2_t33_650M_UR50D"
+      embedding_dim: 1280
+      description: "ESM-2 650M parameter model (default)"
+      
+    - name: "esm2_t30_150M_UR50D"
+      model_path: "facebook/esm2_t30_150M_UR50D"
+      embedding_dim: 640
+      description: "ESM-2 150M parameter model (lighter)"
+      
+    - name: "esm2_t36_3B_UR50D"
+      model_path: "facebook/esm2_t36_3B_UR50D"
+      embedding_dim: 2560
+      description: "ESM-2 3B parameter model (larger)"
+
+  # Embedding Types
+  embedding_types:
+    - name: "amino_acid_level"
+      description: "Per-residue embeddings with fixed-length padding"
+      pooling: null
+      max_length: 100
+      
+    - name: "sequence_level_mean"
+      description: "Sequence-level embedding using mean pooling"
+      pooling: "mean"
+      
+    - name: "sequence_level_max"
+      description: "Sequence-level embedding using max pooling"
+      pooling: "max"
+      
+    - name: "sequence_level_cls"
+      description: "Sequence-level embedding using CLS token"
+      pooling: "cls"
+
+  # Pooling Strategy Ablation
+  pooling_strategies:
+    - "mean"
+    - "max"
+    - "cls"
+
+# =============================================================================
+# 2. MODEL ARCHITECTURE COMPONENTS
+# =============================================================================
+model_ablation:
+  # Individual model architectures in the ensemble
+  individual_models:
+    - name: "cnn"
+      class: "CNN1DAMPClassifier"
+      description: "1D CNN with multi-scale convolutions (kernels: 3, 5, 7)"
+      key_hyperparameters:
+        - dropout
+        - num_filters: [512, 256, 128]
+        - kernel_sizes: [3, 5, 7]
+      
+    - name: "bilstm"
+      class: "AMPBilstmClassifier"
+      description: "Bidirectional LSTM with 256 hidden units"
+      key_hyperparameters:
+        - hidden_dim: 256
+        - num_layers: 1
+        - dropout
+        
+    - name: "gru"
+      class: "GRUClassifier"
+      description: "Bidirectional GRU with 256 hidden units"
+      key_hyperparameters:
+        - hidden_dim: 256
+        - num_layers: 1
+        - dropout
+        - bidirectional: true
+        
+    - name: "lstm"
+      class: "AMP_BiRNN"
+      description: "2-layer Bidirectional RNN (LSTM)"
+      key_hyperparameters:
+        - hidden_dim: 256
+        - num_layers: 2
+        - dropout
+        
+    - name: "hybrid"
+      class: "CNN_BiLSTM_Classifier"
+      description: "Hybrid CNN + BiLSTM architecture"
+      key_hyperparameters:
+        - cnn_out_channels: 256
+        - lstm_hidden_size: 128
+        - lstm_layers: 1
+        - dropout
+        
+    - name: "transformer"
+      class: "AMPTransformerClassifier"
+      description: "Transformer encoder with multi-head attention"
+      key_hyperparameters:
+        - num_heads: 1
+        - num_layers: 1
+        - dropout
+
+  # Model combinations for ablation (remove one at a time)
+  model_combinations:
+    full_ensemble:
+      models: ["cnn", "bilstm", "gru", "lstm", "hybrid", "transformer"]
+      description: "Full ensemble with all 6 models"
+      
+    without_cnn:
+      models: ["bilstm", "gru", "lstm", "hybrid", "transformer"]
+      description: "Ensemble without CNN"
+      
+    without_bilstm:
+      models: ["cnn", "gru", "lstm", "hybrid", "transformer"]
+      description: "Ensemble without BiLSTM"
+      
+    without_gru:
+      models: ["cnn", "bilstm", "lstm", "hybrid", "transformer"]
+      description: "Ensemble without GRU"
+      
+    without_lstm:
+      models: ["cnn", "bilstm", "gru", "hybrid", "transformer"]
+      description: "Ensemble without LSTM"
+      
+    without_hybrid:
+      models: ["cnn", "bilstm", "gru", "lstm", "transformer"]
+      description: "Ensemble without Hybrid"
+      
+    without_transformer:
+      models: ["cnn", "bilstm", "gru", "lstm", "hybrid"]
+      description: "Ensemble without Transformer"
+      
+    only_cnn_recurrent:
+      models: ["cnn", "bilstm", "gru", "lstm"]
+      description: "Only CNN and recurrent models"
+      
+    only_recurrent:
+      models: ["bilstm", "gru", "lstm"]
+      description: "Only recurrent models"
+      
+    minimal_ensemble:
+      models: ["cnn", "lstm"]
+      description: "Minimal ensemble with just CNN and LSTM"
+
+# =============================================================================
+# 3. ENSEMBLE STRATEGY COMPONENTS
+# =============================================================================
+ensemble_ablation:
+  # Voting strategies
+  voting_strategies:
+    - name: "soft_voting"
+      class: "SoftVoting"
+      description: "Averaging probability predictions from all models"
+      parameters:
+        threshold: 0.78
+      
+    - name: "hard_voting"
+      class: "HardVoting"
+      description: "Majority voting on binary predictions"
+      parameters:
+        threshold: 0.5
+      
+    - name: "weighted_voting"
+      class: "WeightedVoting"
+      description: "Weighted averaging based on validation performance"
+      parameters:
+        threshold: 0.78
+        weight_method: "inverse_mse"  # for regression
+      
+    - name: "adaptive_voting"
+      class: "AdaptiveVoting"
+      description: "Confidence-weighted adaptive voting"
+      parameters:
+        base_strategy: "soft_voting"
+
+  # Threshold ablation for classification
+  classification_thresholds:
+    - 0.5
+    - 0.6
+    - 0.7
+    - 0.78  # optimal
+    - 0.8
+    - 0.9
+
+  # Weight computation methods for regression
+  regression_weight_methods:
+    - "equal"
+    - "inverse_mse"
+    - "inverse_mae"
+    - "r2_based"
+
+# =============================================================================
+# 4. TRAINING COMPONENTS
+# =============================================================================
+training_ablation:
+  # Learning rates
+  learning_rates:
+    - 1e-4
+    - 3e-4  # default
+    - 5e-4
+    - 1e-3
+
+  # Dropout rates
+  dropout_rates:
+    - 0.1
+    - 0.2
+    - 0.3  # default
+    - 0.4
+    - 0.5
+
+  # Batch sizes
+  batch_sizes:
+    - 32
+    - 64  # default
+    - 128
+
+  # Optimizers
+  optimizers:
+    - name: "adam"
+      description: "Adam optimizer (default)"
+    - name: "adamw"
+      description: "AdamW with weight decay"
+    - name: "sgd"
+      description: "SGD with momentum"
+
+  # Learning rate schedulers
+  schedulers:
+    - name: "cosine"
+      description: "Cosine annealing (default)"
+    - name: "step"
+      description: "Step decay"
+    - name: "plateau"
+      description: "Reduce on plateau"
+    - name: "none"
+      description: "No scheduler"
+
+# =============================================================================
+# 5. DATA COMPONENTS
+# =============================================================================
+data_ablation:
+  # Sequence length handling
+  sequence_lengths:
+    - 50
+    - 75
+    - 100  # default
+    - 150
+
+  # Data augmentation strategies
+  augmentation_strategies:
+    - name: "none"
+      description: "No augmentation"
+    - name: "mutation"
+      description: "Random amino acid substitutions"
+    - name: "truncation"
+      description: "Random truncation of sequences"
+    - name: "combined"
+      description: "Combined augmentation strategies"
+
+  # Train/val/test split ratios
+  split_strategies:
+    - train: 0.7
+      val: 0.15
+      test: 0.15
+    - train: 0.8
+      val: 0.1
+      test: 0.1  # default
+    - train: 0.6
+      val: 0.2
+      test: 0.2
+
+# =============================================================================
+# ABLATION STUDY GUIDELINES
+# =============================================================================
+guidelines:
+  general:
+    - "Test one component at a time while keeping others fixed"
+    - "Use the same random seed for reproducibility"
+    - "Report mean and std dev over multiple runs"
+    - "Compare against full ensemble baseline"
+    
+  metrics_to_track:
+    classification:
+      - accuracy
+      - precision
+      - recall
+      - f1_score
+      - roc_auc
+      - pr_auc
+      
+    regression:
+      - mse
+      - rmse
+      - mae
+      - r2
+      - pearson_r
+      - spearman_r
+      
+  experimental_design:
+    - baseline: "Full ensemble with all components"
+    - replications: 5
+    - random_seeds: [42, 123, 456, 789, 1011]
+    
+  reporting:
+    - "Report performance delta from baseline"
+    - "Include statistical significance tests"
+    - "Visualize with bar charts and error bars"
+    - "Rank components by importance"

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Modal Test - AMP Prediction Demo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>Modal Test Page</h1>
+            <p>This page is for testing the loading modal functionality.</p>
+
+            <div class="mb-3">
+                <button class="btn btn-primary" onclick="testShowModal()">Show Loading Modal</button>
+                <button class="btn btn-secondary" onclick="testHideModal()">Hide Loading Modal</button>
+                <button class="btn btn-success" onclick="testModalCycle()">Test Modal Cycle (3 seconds)</button>
+            </div>
+
+            <div class="mb-3">
+                <button class="btn btn-info" onclick="testAlert()">Test Alert</button>
+            </div>
+
+            <div class="alert alert-info">
+                Check the browser console (F12) for debug messages.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function testShowModal() {
+    console.log('Testing show modal');
+    AMP.showLoadingModal('Testing modal...');
+}
+
+function testHideModal() {
+    console.log('Testing hide modal');
+    AMP.hideLoadingModal();
+}
+
+function testModalCycle() {
+    console.log('Testing modal cycle');
+    AMP.showLoadingModal('Modal will hide in 3 seconds...');
+    setTimeout(() => {
+        AMP.hideLoadingModal();
+    }, 3000);
+}
+
+function testAlert() {
+    AMP.showAlert('This is a test alert message', 'info');
+}
+</script>
+{% endblock %}

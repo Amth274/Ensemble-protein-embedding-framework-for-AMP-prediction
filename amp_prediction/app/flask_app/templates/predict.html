@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}Single Prediction - AMP Prediction Demo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-search me-3"></i>Single Sequence Prediction
+            </h1>
+            <p class="lead text-muted">
+                Enter a protein sequence to predict its antimicrobial activity using our ensemble model.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Input Section -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-keyboard me-2"></i>Sequence Input
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="predictionForm">
+                        <div class="mb-3">
+                            <label for="sequenceInput" class="form-label">
+                                Protein Sequence <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                class="form-control sequence-input"
+                                id="sequenceInput"
+                                rows="4"
+                                placeholder="Enter protein sequence using standard amino acid codes (e.g., GIGKFLHSAKKFGKAFVGEIMNS)"
+                                required
+                            ></textarea>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Use standard amino acid codes (A-Z). Sequence length: 5-200 amino acids.
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Prediction Threshold</label>
+                                <div class="input-group">
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="thresholdSlider"
+                                        min="0.1"
+                                        max="0.9"
+                                        step="0.01"
+                                        value="0.5"
+                                    >
+                                    <span class="input-group-text" id="thresholdValue">0.50</span>
+                                </div>
+                                <div class="form-text">
+                                    Confidence threshold for AMP classification
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-search me-2"></i>Predict
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="clearBtn">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Clear
+                            </button>
+                            <button type="button" class="btn btn-outline-info" id="loadExampleBtn">
+                                <i class="bi bi-collection me-2"></i>Load Example
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="card shadow-sm" style="display: none;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clipboard-data me-2"></i>Prediction Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Main Prediction -->
+                    <div id="mainPrediction" class="main-prediction-card mb-4">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Individual Model Results -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Individual Model Predictions</h6>
+                        <div id="individualResults" class="row g-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Confidence Chart -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Model Confidence Comparison</h6>
+                        <canvas id="confidenceChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Download Results -->
+                    <div class="text-end">
+                        <button class="btn btn-outline-primary" id="downloadResultsBtn">
+                            <i class="bi bi-download me-2"></i>Download Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Sidebar -->
+        <div class="col-lg-4">
+            <!-- Sequence Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Sequence Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="sequenceInfo">
+                        <p class="text-muted">Enter a sequence to see analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composition Analysis -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Composition Analysis
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="compositionInfo">
+                        <p class="text-muted">Sequence composition will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Model Performance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <span class="metric-label">Accuracy:</span>
+                        <span class="metric-value">93.57%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Precision:</span>
+                        <span class="metric-value">99.01%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Recall:</span>
+                        <span class="metric-value">87.78%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">F1-Score:</span>
+                        <span class="metric-value">93.06%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">ROC-AUC:</span>
+                        <span class="metric-value">99.39%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-question-circle me-2"></i>Help & Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Use standard amino acid codes (A-Z)
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Sequence length: 5-200 amino acids
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Higher confidence = more reliable prediction
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Try the examples for known AMPs
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let confidenceChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('predictionForm');
+    const sequenceInput = document.getElementById('sequenceInput');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdValue = document.getElementById('thresholdValue');
+    const clearBtn = document.getElementById('clearBtn');
+    const loadExampleBtn = document.getElementById('loadExampleBtn');
+
+    // Update threshold display
+    thresholdSlider.addEventListener('input', function() {
+        thresholdValue.textContent = parseFloat(this.value).toFixed(2);
+    });
+
+    // Real-time sequence analysis
+    sequenceInput.addEventListener('input', function() {
+        analyzeSequence(this.value.trim().toUpperCase());
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', function() {
+        sequenceInput.value = '';
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('sequenceInfo').innerHTML = '<p class="text-muted">Enter a sequence to see analysis</p>';
+        document.getElementById('compositionInfo').innerHTML = '<p class="text-muted">Sequence composition will appear here</p>';
+    });
+
+    // Load example button
+    loadExampleBtn.addEventListener('click', function() {
+        const examples = [
+            'GIGKFLHSAKKFGKAFVGEIMNS',  // Magainin-2
+            'KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK',  // Cecropin A
+            'LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES',  // LL-37
+            'GLFDIVKKVVGALCS'  // Synthetic AMP
+        ];
+        const randomExample = examples[Math.floor(Math.random() * examples.length)];
+        sequenceInput.value = randomExample;
+        analyzeSequence(randomExample);
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        makePrediction();
+    });
+});
+
+function analyzeSequence(sequence) {
+    if (!sequence || sequence.length < 5) {
+        return;
+    }
+
+    // Basic sequence info
+    const length = sequence.length;
+    const uniqueAAs = new Set(sequence).size;
+
+    // Calculate composition
+    const hydrophobic = 'AILMFPWV';
+    const charged = 'KRDE';
+    const aromatic = 'FWY';
+
+    const hydrophobicCount = sequence.split('').filter(aa => hydrophobic.includes(aa)).length;
+    const chargedCount = sequence.split('').filter(aa => charged.includes(aa)).length;
+    const aromaticCount = sequence.split('').filter(aa => aromatic.includes(aa)).length;
+
+    // Update sequence info
+    document.getElementById('sequenceInfo').innerHTML = `
+        <div class="info-item">
+            <span class="info-label">Length:</span>
+            <span class="info-value">${length} amino acids</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Unique AAs:</span>
+            <span class="info-value">${uniqueAAs}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Molecular Weight:</span>
+            <span class="info-value">~${(length * 0.11).toFixed(1)} kDa</span>
+        </div>
+    `;
+
+    // Update composition info
+    document.getElementById('compositionInfo').innerHTML = `
+        <div class="composition-item">
+            <span class="composition-label">Hydrophobic:</span>
+            <div class="progress mb-1">
+                <div class="progress-bar bg-primary" style="width: ${(hydrophobicCount/length*100)}%"></div>
+            </div>
+            <small>${(hydrophobicCount/length*100).toFixed(1)}%</small>
+        </div>
+        <div class="composition-item mt-2">
+            <span class="composition-label">Charged:</span>
+            <div class="progress mb-1">
+                <div class="progress-bar bg-warning" style="width: ${(chargedCount/length*100)}%"></div>
+            </div>
+            <small>${(chargedCount/length*100).toFixed(1)}%</small>
+        </div>
+        <div class="composition-item mt-2">
+            <span class="composition-label">Aromatic:</span>
+            <div class="progress mb-1">
+                <div class="progress-bar bg-info" style="width: ${(aromaticCount/length*100)}%"></div>
+            </div>
+            <small>${(aromaticCount/length*100).toFixed(1)}%</small>
+        </div>
+    `;
+}
+
+function makePrediction() {
+    const sequence = document.getElementById('sequenceInput').value.trim().toUpperCase();
+
+    if (!sequence) {
+        AMP.showAlert('Please enter a sequence', 'warning');
+        return;
+    }
+
+    console.log('Starting prediction for sequence:', sequence);
+    AMP.showLoadingModal('Analyzing sequence...');
+
+    fetch('/api/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sequence: sequence })
+    })
+    .then(response => {
+        console.log('Got response:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Prediction complete, hiding modal');
+        AMP.hideLoadingModal();
+        if (data.error) {
+            AMP.showAlert(data.error, 'danger');
+        } else {
+            displayResults(data);
+        }
+    })
+    .catch(error => {
+        console.log('Prediction error, hiding modal');
+        AMP.hideLoadingModal();
+        console.error('Error:', error);
+        AMP.showAlert('Prediction failed. Please try again.', 'danger');
+    });
+}
+
+function displayResults(data) {
+    const resultsSection = document.getElementById('resultsSection');
+    const mainPrediction = document.getElementById('mainPrediction');
+    const individualResults = document.getElementById('individualResults');
+
+    // Main prediction
+    const isAMP = data.ensemble.prediction === 1;
+    const confidence = (data.ensemble.confidence * 100).toFixed(1);
+
+    mainPrediction.innerHTML = `
+        <div class="text-center">
+            <div class="prediction-icon mb-3">
+                <i class="bi ${isAMP ? 'bi-shield-check text-success' : 'bi-shield-x text-danger'}" style="font-size: 3rem;"></i>
+            </div>
+            <h3 class="fw-bold mb-2">
+                ${isAMP ? 'Antimicrobial Peptide' : 'Non-Antimicrobial'}
+            </h3>
+            <p class="lead">
+                Confidence: <span class="fw-bold">${confidence}%</span>
+            </p>
+            <div class="progress mb-3" style="height: 20px;">
+                <div class="progress-bar ${isAMP ? 'bg-success' : 'bg-danger'}"
+                     style="width: ${confidence}%">
+                    ${confidence}%
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Individual model results
+    individualResults.innerHTML = '';
+    Object.entries(data.individual).forEach(([model, result]) => {
+        const modelIsAMP = result.prediction === 1;
+        const modelConfidence = (result.confidence * 100).toFixed(1);
+
+        const modelCard = document.createElement('div');
+        modelCard.className = 'col-md-6 col-lg-4';
+        modelCard.innerHTML = `
+            <div class="card h-100 ${modelIsAMP ? 'border-success' : 'border-danger'}">
+                <div class="card-body text-center">
+                    <h6 class="card-title">${model}</h6>
+                    <div class="model-prediction ${modelIsAMP ? 'text-success' : 'text-danger'}">
+                        <i class="bi ${modelIsAMP ? 'bi-check-circle' : 'bi-x-circle'}"></i>
+                        ${modelIsAMP ? 'AMP' : 'Non-AMP'}
+                    </div>
+                    <div class="model-confidence mt-2">
+                        <small class="text-muted">Confidence:</small><br>
+                        <span class="fw-bold">${modelConfidence}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        individualResults.appendChild(modelCard);
+    });
+
+    // Update confidence chart
+    updateConfidenceChart(data.individual);
+
+    // Show results
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function updateConfidenceChart(individualData) {
+    const ctx = document.getElementById('confidenceChart').getContext('2d');
+
+    if (confidenceChart) {
+        confidenceChart.destroy();
+    }
+
+    const models = Object.keys(individualData);
+    const confidences = Object.values(individualData).map(result => result.confidence * 100);
+    const colors = models.map((_, index) => `hsl(${index * 60}, 70%, 50%)`);
+
+    confidenceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: models,
+            datasets: [{
+                label: 'Confidence (%)',
+                data: confidences,
+                backgroundColor: colors,
+                borderColor: colors.map(color => color.replace('50%', '40%')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Confidence (%)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
