@@ -310,7 +310,7 @@ If you use this code in your research, please cite:
 ```bibtex
 @article{amp2025enhanced,
   title={Enhanced Antimicrobial Peptide Prediction using ESM-650M Embeddings and Ensemble Deep Learning},
-  author={Your Name et al.},
+  author={Aum Thaker et al.},
   journal={TBD},
   year={2025}
 }
